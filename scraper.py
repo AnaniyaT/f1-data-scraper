@@ -173,7 +173,7 @@ def motherShip(year):
         print(round_ + 1, "Scraping... ",raceUrl['href'])
         races.append(getRace("https://www.formula1.com" + raceUrl['href'], round_ + 1))
     
-    jsonUrl = "https://api.npoint.io/a76aa8fd0b3a4314435e"
+    jsonUrl = os.getenv("SCHEDULE_DB_API_URL")
     
     retries = 0
     status = 0
@@ -196,7 +196,7 @@ def motherShip(year):
     print("Season Schedule", retries, status, res.text)
     
     print("Getting Standings...")
-    jsonUrl = os.getenv("DB_API_URL")
+    jsonUrl = os.getenv("STANDINGS_DB_API_URL")
     
     res = requests.post(jsonUrl, json.dumps(getStandings(year), indent=4, ensure_ascii=False))
     
