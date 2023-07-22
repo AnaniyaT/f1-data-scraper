@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+import bs4
 from dotenv import load_dotenv
 import os
 import requests
@@ -7,7 +8,7 @@ import time
 
 load_dotenv()
 
-def camelCase(string):
+def camelCase(string : str):
     if not string:
         return ""
     
@@ -17,7 +18,7 @@ def camelCase(string):
     
     return "".join(res)
 
-def getEventResults(url):
+def getEventResults(url : str):
     print("Getting Results...")
     resultArr = []
     html = requests.get(url)
@@ -133,10 +134,10 @@ def getStanding(url):
     infos = [info.lower() for info in standingsTable.thead.stripped_strings]
     
     standings = []
-    for child in standingsTable.tbody.children:
+    for child in standingsTable.tbody.children: 
         if child != "\n":
             data = []
-            for ch in child.children:
+            for ch in child.children: # type(ch) = <class 'bs4.element.Tag'> type(ch.children) = <class 'list_iterator'>
                 joined = " ".join(ch.stripped_strings)
                 if joined:
                     data.append(joined)
@@ -157,7 +158,7 @@ def getStandings(year):
     return {"drivers": getStanding(driversUrl), "teams": getStanding(teamsUrl)}
 
 
-def motherShip(year):
+def motherShip(year, race=None):
     url = f"https://www.formula1.com/en/racing/{str(year)}.html"
     html = requests.get(url)
     soup = BeautifulSoup(html.text.encode('utf-8'), 'html.parser')
@@ -177,7 +178,7 @@ def motherShip(year):
     
     retries = 0
     status = 0
-    theJson = json.dumps({"season": year, "rounds": rounds, "races": races}, indent=4, ensure_ascii=False).encode('utf-8')
+    theJson = json.dumps({"season": year, "rounds": rounds, "races": races}, indent=4, ensure_ascii=False).encode(html.encoding)
     # print("The result",theJson.encode('utf-8'))
     while status != 200 and retries < 10:
         print("posting to db...")
@@ -198,12 +199,13 @@ def motherShip(year):
     print("Getting Standings...")
     jsonUrl = os.getenv("STANDINGS_DB_API_URL")
     
-    res = requests.post(jsonUrl, json.dumps(getStandings(year), indent=4, ensure_ascii=False))
+    res = requests.post(jsonUrl, json.dumps(getStandings(year), indent=4, ensure_ascii=False).encode(html.encoding))
     
     print("Season Standings", res)
     
     end = time.time()
     
     print(f"Scrape ended in {round(end - start)} seconds.")
-    
-motherShip(2023)
+
+if __name__ == "__main__":
+    motherShip(2023)
